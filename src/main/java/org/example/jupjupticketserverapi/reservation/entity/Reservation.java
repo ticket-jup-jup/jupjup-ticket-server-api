@@ -43,6 +43,7 @@ public class Reservation {
         this.ticket = ticket;
         this.status = status;
         this.expiresAt = expiresAt;
+        this.status = ReservationStatus.PENDING;
     }
 
     public void confirm() {
