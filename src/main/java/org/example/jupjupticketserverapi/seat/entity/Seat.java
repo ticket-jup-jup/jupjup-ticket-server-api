@@ -19,7 +19,7 @@ public class Seat {
     private String section;
 
     @Column(nullable = false, length = 2)
-    private String rowNumber;
+    private String seatRow;
 
     @Column(nullable = false, length = 2)
     private Integer seatNumber;
