@@ -36,6 +36,8 @@ public class Payment {
 
     private LocalDateTime paidAt;
 
+    private LocalDateTime createdAt;
+
     public Payment(
             Reservation reservation,
             BigDecimal amount,
@@ -45,6 +47,7 @@ public class Payment {
         this.amount = amount;
         this.paymentMethod = paymentMethod;
         this.status = PaymentStatus.PENDING;
+        this.createdAt = LocalDateTime.now();
     }
 
     public void complete() {
