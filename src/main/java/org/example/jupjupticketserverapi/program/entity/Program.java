@@ -23,16 +23,16 @@ public class Program extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private ProgramType programType;
+    private ProgramType type;
 
     @Column(nullable = false, length = 255)
     private String description;
 
     private LocalDateTime deletedAt;
 
-    public Program(String name, ProgramType programType, String description) {
+    public Program(String name, ProgramType type, String description) {
         this.name = name;
-        this.programType = programType;
+        this.type = type;
         this.description = description;
     }
 }
