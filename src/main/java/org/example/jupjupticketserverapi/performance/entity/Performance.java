@@ -20,7 +20,7 @@ public class Performance extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "program_id")
+    @JoinColumn(name = "program_id", nullable = false)
     private Program program;
 
     @Column(nullable = false)
