@@ -33,24 +33,24 @@ public class Ticket extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private TicketStatus ticketStatus;
+    private TicketStatus status;
 
     public Ticket(Performance performance, Seat seat, BigDecimal price) {
         this.performance = performance;
         this.seat = seat;
         this.price = price;
-        this.ticketStatus = TicketStatus.AVAILABLE;
+        this.status = TicketStatus.AVAILABLE;
     }
 
     public void cancel() {
-        this.ticketStatus = TicketStatus.CANCELLED;
+        this.status = TicketStatus.CANCELLED;
     }
 
     public void reserve() {
-        this.ticketStatus = TicketStatus.RESERVED;
+        this.status = TicketStatus.RESERVED;
     }
 
     public void confirm() {
-        this.ticketStatus = TicketStatus.SOLD;
+        this.status = TicketStatus.SOLD;
     }
 }
