@@ -32,7 +32,7 @@ public class Performance {
     private String venue;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 10)
     private PerformanceStatus performanceStatus;
 
     public Performance(Program program, LocalDateTime startAt, LocalDateTime endAt, String venue, PerformanceStatus performanceStatus) {
