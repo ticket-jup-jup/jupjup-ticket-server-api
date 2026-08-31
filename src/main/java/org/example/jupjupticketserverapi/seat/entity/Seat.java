@@ -21,6 +21,6 @@ public class Seat {
     @Column(nullable = false, length = 2)
     private String seatRow;
 
-    @Column(nullable = false, length = 2)
+    @Column(nullable = false)
     private Integer seatNumber;
 }
