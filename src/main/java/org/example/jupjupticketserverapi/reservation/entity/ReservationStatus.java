@@ -1,4 +1,4 @@
-package org.example.jupjupticketserverapi.reservation;
+package org.example.jupjupticketserverapi.reservation.entity;
 
 public enum ReservationStatus {
     PENDING, // 임시예약 (결제 대기)

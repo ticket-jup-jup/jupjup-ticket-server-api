@@ -1,4 +1,4 @@
-package org.example.jupjupticketserverapi.reservation;
+package org.example.jupjupticketserverapi.reservation.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
