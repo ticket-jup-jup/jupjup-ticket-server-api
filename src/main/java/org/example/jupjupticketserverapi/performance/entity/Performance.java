@@ -34,13 +34,13 @@ public class Performance extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private PerformanceStatus performanceStatus;
+    private PerformanceStatus status;
 
-    public Performance(Program program, LocalDateTime startAt, LocalDateTime endAt, String venue, PerformanceStatus performanceStatus) {
+    public Performance(Program program, LocalDateTime startAt, LocalDateTime endAt, String venue, PerformanceStatus status) {
         this.program = program;
         this.startAt = startAt;
         this.endAt = endAt;
         this.venue = venue;
-        this.performanceStatus = performanceStatus;
+        this.status = status;
     }
 }
