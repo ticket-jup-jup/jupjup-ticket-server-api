@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface ServerCredentialRepository extends JpaRepository<ServerCredential, Long> {
     Optional<ServerCredential> findByServiceName(String serviceName);
+
+    boolean existsByApiKey(String apiKey);
 }
