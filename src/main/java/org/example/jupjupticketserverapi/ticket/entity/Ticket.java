@@ -31,24 +31,9 @@ public class Ticket extends BaseEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private TicketStatus status;
-
     public Ticket(Performance performance, Seat seat, BigDecimal price) {
         this.performance = performance;
         this.seat = seat;
         this.price = price;
-        this.status = TicketStatus.AVAILABLE;
-    }
-
-    public void cancel() {this.status = TicketStatus.CANCELLED;}
-
-    public void reserve() {
-        this.status = TicketStatus.RESERVED;
-    }
-
-    public void confirm() {
-        this.status = TicketStatus.SOLD;
     }
 }
