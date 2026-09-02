@@ -6,7 +6,10 @@ import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateReques
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
 import org.example.jupjupticketserverapi.reservation.service.ReservationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -15,9 +18,8 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    @PostMapping("/{reservationId}/confirm")
+    @PostMapping
     public ResponseEntity<ApiResponse<ReservationCreateResponse>> create(
-            @PathVariable Long reservationId,
             @RequestBody ReservationCreateRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(reservationService.create(request)));
