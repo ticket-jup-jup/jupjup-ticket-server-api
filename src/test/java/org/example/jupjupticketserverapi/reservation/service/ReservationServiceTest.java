@@ -3,6 +3,7 @@ package org.example.jupjupticketserverapi.reservation.service;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
+import org.example.jupjupticketserverapi.reservation.dto.ReservationGetResponse;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
@@ -337,9 +338,48 @@ class ReservationServiceTest {
             case CONFIRMED -> reservation.confirm();
             case REFUNDED -> reservation.refund();
             case EXPIRED -> reservation.expire();
-            case PENDING -> { }
+            case PENDING -> {
+            }
         }
         ReflectionTestUtils.setField(reservation, "id", 1L);
         return reservation;
+    }
+
+    @Test
+    void 전체_예약_조회() {
+        // given
+        User user = mock(User.class);
+        Ticket ticket = mock(Ticket.class);
+
+        when(user.getId()).thenReturn(1L);
+        when(ticket.getId()).thenReturn(10L);
+
+        Reservation reservation1 = new Reservation(
+                user,
+                ticket,
+                LocalDateTime.now().plusMinutes(10)
+        );
+
+        Reservation reservation2 = new Reservation(
+                user,
+                ticket,
+                LocalDateTime.now().plusMinutes(20)
+        );
+
+        when(reservationRepository.findAll()).thenReturn(List.of(reservation1, reservation2));
+
+        // when
+        List<ReservationGetResponse> result = reservationService.getAll();
+
+        // then
+        verify(reservationRepository).findAll();
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getUserId()).isEqualTo(1L);
+        assertThat(result.get(0).getTicketId()).isEqualTo(10L);
+        assertThat(result.get(0).getStatus()).isEqualTo(ReservationStatus.PENDING);
+        assertThat(result.get(1).getUserId()).isEqualTo(1L);
+        assertThat(result.get(1).getTicketId()).isEqualTo(10L);
+        assertThat(result.get(1).getStatus()).isEqualTo(ReservationStatus.PENDING);
     }
 }

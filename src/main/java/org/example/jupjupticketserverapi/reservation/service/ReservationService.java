@@ -1,10 +1,7 @@
 package org.example.jupjupticketserverapi.reservation.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationResponse;
+import org.example.jupjupticketserverapi.reservation.dto.*;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
@@ -119,5 +116,20 @@ public class ReservationService {
 
         reservation.refund();
         return ReservationCancelResponse.from(reservation);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationGetResponse> getAll() {
+
+        return reservationRepository.findAll()
+                .stream().map(reservation -> new ReservationGetResponse(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getTicket().getId(),
+                        reservation.getStatus(),
+                        reservation.getExpiresAt(),
+                        reservation.getCreatedAt(),
+                        reservation.getUpdatedAt()
+                )).toList();
     }
 }
