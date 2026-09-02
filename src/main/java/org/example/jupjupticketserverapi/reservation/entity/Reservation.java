@@ -37,12 +37,10 @@ public class Reservation extends BaseEntity {
     public Reservation(
             User user,
             Ticket ticket,
-            ReservationStatus status,
             LocalDateTime expiresAt
     ) {
         this.user = user;
         this.ticket = ticket;
-        this.status = status;
         this.expiresAt = expiresAt;
         this.status = ReservationStatus.PENDING;
     }
