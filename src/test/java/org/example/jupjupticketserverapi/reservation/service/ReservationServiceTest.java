@@ -1,5 +1,11 @@
 package org.example.jupjupticketserverapi.reservation.service;
 
+import org.example.jupjupticketserverapi.payment.entity.Payment;
+import org.example.jupjupticketserverapi.payment.entity.PaymentMethod;
+import org.example.jupjupticketserverapi.payment.entity.PaymentStatus;
+import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
+import org.example.jupjupticketserverapi.reservation.dto.ReservationConfirmRequest;
+import org.example.jupjupticketserverapi.reservation.dto.ReservationConfirmResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
@@ -9,6 +15,7 @@ import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotCancellableException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFoundException;
+import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFundException;
 import org.example.jupjupticketserverapi.reservation.repository.ReservationRepository;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.ticket.exception.TicketNotFoundException;
@@ -23,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -45,10 +53,16 @@ class ReservationServiceTest {
     private TicketRepository ticketRepository;
 
     @Mock
+    private PaymentRepository paymentRepository;
+
+    @Mock
     private User user;
 
     @Mock
     private Ticket ticket;
+
+    @Mock
+    private Reservation reservation;
 
     @Mock
     private Reservation savedReservation;
@@ -60,7 +74,8 @@ class ReservationServiceTest {
         reservationService = new ReservationService(
                 reservationRepository,
                 userRepository,
-                ticketRepository
+                ticketRepository,
+                paymentRepository
         );
     }
 
@@ -257,6 +272,80 @@ class ReservationServiceTest {
 
         verify(reservationRepository, never()).save(any(Reservation.class));
     }
+
+    @Test
+    void 예약_확정_및_결제_생성() {
+
+        // given
+        Long reservationId = 1L;
+        Long ticketId = 10L;
+
+        Reservation reservation = mock(Reservation.class);
+        Ticket ticket = mock(Ticket.class);
+
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+        when(reservation.getTicket()).thenReturn(ticket);
+        when(ticket.getId()).thenReturn(ticketId);
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(ticket.getPrice()).thenReturn(BigDecimal.valueOf(10000));
+
+        ReservationConfirmRequest request = mock(ReservationConfirmRequest.class);
+
+        when(request.getPaymentMethod()).thenReturn(PaymentMethod.CARD);
+        when(reservation.getId()).thenReturn(reservationId);
+        when(reservation.getUser()).thenReturn(user);
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getCreatedAt()).thenReturn(LocalDateTime.now());
+        when(reservation.getUpdatedAt()).thenReturn(LocalDateTime.now());
+
+        when(user.getId()).thenReturn(1L);
+
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        List<ReservationConfirmResponse> result = reservationService.confirm(reservationId, request);
+
+        // then
+        verify(reservation).confirm();
+        verify(paymentRepository).save(any(Payment.class));
+
+        assertThat(result).hasSize(1);
+
+        ReservationConfirmResponse response = result.get(0);
+        assertThat(response.getReservationResponse()).isNotNull();
+        assertThat(response.getPaymentResponse()).isNotNull();
+        assertThat(response.getPaymentResponse().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+        assertThat(response.getPaymentResponse().getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
+        assertThat(response.getPaymentResponse().getStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(response.getPaymentResponse().getPaidAt()).isNotNull();
+        assertThat(response.getPaymentResponse().getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    void 존재하지_않는_예약_예외() {
+
+        // given
+        Long reservationId = 999L;
+
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.empty());
+
+        ReservationConfirmRequest request = mock(ReservationConfirmRequest.class);
+
+        // when & then
+        verify(ticketRepository, never()).findById(any());
+        verify(paymentRepository, never()).save(any());
+
+        assertThatThrownBy(() ->
+                reservationService.confirm(
+                        reservationId,
+                        request
+                )
+        ).isInstanceOf(ReservationNotFundException.class);
+    }
+
+
 
     // ── 예약 취소 (이슈 #32) ──────────────────────────────────
 

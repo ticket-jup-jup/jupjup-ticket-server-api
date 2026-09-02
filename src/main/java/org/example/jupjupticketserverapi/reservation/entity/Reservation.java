@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.jupjupticketserverapi.global.entity.BaseEntity;
+import org.example.jupjupticketserverapi.reservation.exception.InvalidReservationStatusException;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.user.entity.User;
 
@@ -46,6 +47,15 @@ public class Reservation extends BaseEntity {
     }
 
     public void confirm() {
+
+        if (this.status != ReservationStatus.PENDING) {
+            throw new InvalidReservationStatusException("임시 예약 상태에서만 예약을 확정할 수 있습니다.");
+        }
+
+        if (this.expiresAt.isBefore(LocalDateTime.now())) {
+            throw new InvalidReservationStatusException("만료된 예약은 확정할 수 없습니다.");
+        }
+
         this.status = ReservationStatus.CONFIRMED;
     }
 
@@ -54,6 +64,10 @@ public class Reservation extends BaseEntity {
     }
 
     public void expire() {
+        if (this.status != ReservationStatus.PENDING) {
+            throw new InvalidReservationStatusException("임시 예약만 만료 처리할 수 있습니다.");
+        }
+
         this.status = ReservationStatus.EXPIRED;
     }
 }
