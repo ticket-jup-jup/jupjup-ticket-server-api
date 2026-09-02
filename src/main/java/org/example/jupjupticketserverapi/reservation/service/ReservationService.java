@@ -1,10 +1,6 @@
 package org.example.jupjupticketserverapi.reservation.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationResponse;
 import org.example.jupjupticketserverapi.payment.dto.PaymentResponse;
 import org.example.jupjupticketserverapi.payment.entity.Payment;
 import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
@@ -15,7 +11,6 @@ import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotCancellableException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFoundException;
-import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFundException;
 import org.example.jupjupticketserverapi.reservation.repository.ReservationRepository;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.ticket.exception.TicketNotFoundException;
@@ -119,7 +114,7 @@ public class ReservationService {
         // 예약 조회
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() ->
-                        new ReservationNotFundException("존재하지 않는 예약입니다.")
+                        new ReservationNotFoundException("존재하지 않는 예약입니다.")
                 );
 
         // 티켓 데이터 조회

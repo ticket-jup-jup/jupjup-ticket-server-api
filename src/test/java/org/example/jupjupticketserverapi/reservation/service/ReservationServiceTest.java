@@ -4,6 +4,7 @@ import org.example.jupjupticketserverapi.payment.entity.Payment;
 import org.example.jupjupticketserverapi.payment.entity.PaymentMethod;
 import org.example.jupjupticketserverapi.payment.entity.PaymentStatus;
 import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
+import org.example.jupjupticketserverapi.reservation.dto.*;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationConfirmRequest;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationConfirmResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
