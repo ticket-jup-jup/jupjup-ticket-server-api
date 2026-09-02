@@ -42,9 +42,7 @@ public class Ticket extends BaseEntity {
         this.status = TicketStatus.AVAILABLE;
     }
 
-    public void cancel() {
-        this.status = TicketStatus.CANCELLED;
-    }
+    public void cancel() {this.status = TicketStatus.CANCELLED;}
 
     public void reserve() {
         this.status = TicketStatus.RESERVED;
