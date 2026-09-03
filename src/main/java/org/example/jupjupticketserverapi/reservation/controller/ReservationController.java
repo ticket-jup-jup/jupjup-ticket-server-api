@@ -5,13 +5,10 @@ import org.example.jupjupticketserverapi.global.dto.ApiResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
+import org.example.jupjupticketserverapi.reservation.dto.ReservationGetResponse;
 import org.example.jupjupticketserverapi.reservation.service.ReservationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,6 +18,11 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<ReservationGetResponse>> getAll() {
+        return ResponseEntity.ok(ApiResponse.success(reservationService.getAll()));
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<ReservationCreateResponse>> create(
