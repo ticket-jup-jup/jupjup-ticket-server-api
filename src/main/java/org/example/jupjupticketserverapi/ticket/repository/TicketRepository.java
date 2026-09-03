@@ -17,7 +17,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
                     s.section,
                     CONCAT(s.seatRow, '-', s.seatNumber),
                     t.price,
-                    r.status
+                    r
                 FROM Ticket t
                 JOIN t.performance p
                 JOIN p.program program

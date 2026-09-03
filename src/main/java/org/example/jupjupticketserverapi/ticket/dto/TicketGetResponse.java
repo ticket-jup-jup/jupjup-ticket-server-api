@@ -1,6 +1,7 @@
 package org.example.jupjupticketserverapi.ticket.dto;
 
 import lombok.Getter;
+import org.example.jupjupticketserverapi.ticket.entity.TicketStatus;
 
 import java.math.BigDecimal;
 
@@ -13,9 +14,9 @@ public class TicketGetResponse {
     private final String section;
     private final String seat;
     private final BigDecimal price;
-    private final String status;
+    private final TicketStatus status;
 
-    public TicketGetResponse(Long id, Long programId, Long performanceId, String section, String seat, BigDecimal price, String status) {
+    public TicketGetResponse(Long id, Long programId, Long performanceId, String section, String seat, BigDecimal price, TicketStatus status) {
         this.id = id;
         this.programId = programId;
         this.performanceId = performanceId;
