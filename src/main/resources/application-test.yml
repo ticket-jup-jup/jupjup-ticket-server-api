@@ -9,8 +9,3 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-    defer-datasource-initialization: true # ddl-auto로 테이블이 모두 생성된 후 data.sql이 실행되도록 보장
-
-  sql:
-    init:
-      mode: always
