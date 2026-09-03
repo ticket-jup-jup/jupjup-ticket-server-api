@@ -308,13 +308,13 @@ class ReservationServiceTest {
         assertThat(result).hasSize(1);
 
         ReservationConfirmResponse response = result.get(0);
-        assertThat(response.getReservationResponse()).isNotNull();
-        assertThat(response.getPaymentResponse()).isNotNull();
-        assertThat(response.getPaymentResponse().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(10000));
-        assertThat(response.getPaymentResponse().getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
-        assertThat(response.getPaymentResponse().getStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(response.getPaymentResponse().getPaidAt()).isNotNull();
-        assertThat(response.getPaymentResponse().getCreatedAt()).isNotNull();
+        assertThat(response.getReservation()).isNotNull();
+        assertThat(response.getPayment()).isNotNull();
+        assertThat(response.getPayment().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+        assertThat(response.getPayment().getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
+        assertThat(response.getPayment().getStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(response.getPayment().getPaidAt()).isNotNull();
+        assertThat(response.getPayment().getCreatedAt()).isNotNull();
     }
 
     @Test
