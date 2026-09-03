@@ -6,11 +6,11 @@ import org.example.jupjupticketserverapi.payment.dto.PaymentResponse;
 @Getter
 public class ReservationCreateResponse {
 
-    private final ReservationResponse reservationResponse;
-    private final PaymentResponse paymentResponse;
+    private final ReservationResponse reservation;
+    private final PaymentResponse payment;
 
-    public ReservationCreateResponse(ReservationResponse reservationResponse, PaymentResponse paymentResponse) {
-        this.reservationResponse = reservationResponse;
-        this.paymentResponse = paymentResponse;
+    public ReservationCreateResponse(ReservationResponse reservation, PaymentResponse payment) {
+        this.reservation = reservation;
+        this.payment = payment;
     }
 }
