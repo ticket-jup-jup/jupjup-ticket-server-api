@@ -44,4 +44,35 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             @Param("programId") Long programId,
             @Param("performanceId") Long performanceId
     );
+
+    @Query("""
+            SELECT
+                t,
+                p,
+                s,
+                r
+            FROM Ticket t
+            JOIN t.performance p
+            JOIN t.seat s
+            LEFT JOIN Reservation r
+                ON r.ticket = t
+                AND (
+                    r.status =
+                        org.example.jupjupticketserverapi.reservation.entity.ReservationStatus.CONFIRMED
+                    OR (
+                        r.status =
+                            org.example.jupjupticketserverapi.reservation.entity.ReservationStatus.PENDING
+                        AND r.expiresAt > CURRENT_TIMESTAMP
+                    )
+                )
+            WHERE (:performanceId IS NULL OR p.id = :performanceId)
+            ORDER BY
+                p.id ASC,
+                s.section ASC,
+                s.seatRow ASC,
+                s.seatNumber ASC
+            """)
+    List<Object[]> findInternalTicketList(
+            @Param("performanceId") Long performanceId
+    );
 }
