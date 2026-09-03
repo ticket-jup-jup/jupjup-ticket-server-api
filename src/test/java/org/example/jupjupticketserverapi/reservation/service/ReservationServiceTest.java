@@ -5,18 +5,11 @@ import org.example.jupjupticketserverapi.payment.entity.PaymentMethod;
 import org.example.jupjupticketserverapi.payment.entity.PaymentStatus;
 import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
 import org.example.jupjupticketserverapi.reservation.dto.*;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationConfirmRequest;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationConfirmResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
-import org.example.jupjupticketserverapi.reservation.dto.ReservationGetResponse;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotCancellableException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFoundException;
-import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFundException;
 import org.example.jupjupticketserverapi.reservation.repository.ReservationRepository;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.ticket.exception.TicketNotFoundException;
@@ -343,9 +336,8 @@ class ReservationServiceTest {
                         reservationId,
                         request
                 )
-        ).isInstanceOf(ReservationNotFundException.class);
+        ).isInstanceOf(ReservationNotFoundException.class);
     }
-
 
 
     // ── 예약 취소 (이슈 #32) ──────────────────────────────────
