@@ -1,7 +1,9 @@
 package org.example.jupjupticketserverapi.reservation.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.jupjupticketserverapi.global.dto.ApiResponse;
+import org.example.jupjupticketserverapi.reservation.dto.*;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCancelResponse;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateRequest;
 import org.example.jupjupticketserverapi.reservation.dto.ReservationCreateResponse;
@@ -29,6 +31,14 @@ public class ReservationController {
             @RequestBody ReservationCreateRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(reservationService.create(request)));
+    }
+
+    @PostMapping("/{reservationId}/confirm")
+    public ResponseEntity<ApiResponse<ReservationConfirmResponse>> confirm(
+            @PathVariable Long reservationId,
+            @Valid @RequestBody ReservationConfirmRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(reservationService.confirm(reservationId, request)));
     }
 
     @PostMapping("/{reservationId}/cancel")

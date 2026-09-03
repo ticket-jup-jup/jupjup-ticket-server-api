@@ -43,16 +43,14 @@ public class Payment {
             BigDecimal amount,
             PaymentMethod paymentMethod
     ) {
+        LocalDateTime now = LocalDateTime.now();
+
         this.reservation = reservation;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.status = PaymentStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    public void complete() {
         this.status = PaymentStatus.COMPLETED;
-        this.paidAt = LocalDateTime.now();
+        this.paidAt = now;
+        this.createdAt = now;
     }
 
     public void fail() {
