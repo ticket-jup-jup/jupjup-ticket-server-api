@@ -3,7 +3,7 @@ package org.example.jupjupticketserverapi.ticket.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.jupjupticketserverapi.global.dto.ApiResponse;
 import org.example.jupjupticketserverapi.ticket.dto.TicketGetResponse;
-import org.example.jupjupticketserverapi.ticket.dto.TicketInternalGetReesponse;
+import org.example.jupjupticketserverapi.ticket.dto.TicketInternalGetResponse;
 import org.example.jupjupticketserverapi.ticket.service.TicketService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +25,7 @@ public class TicketController {
     }
 
     @GetMapping("/api/internal/tickets")
-    public ResponseEntity<ApiResponse<TicketInternalGetReesponse>> getInternalTickets(
+    public ResponseEntity<ApiResponse<TicketInternalGetResponse>> getInternalTickets(
             @RequestParam(required = false) Long performance,
             @RequestParam(required = false) String status
     ) {

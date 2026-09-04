@@ -7,10 +7,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
-public class TicketInternalGetReesponse {
+public class TicketInternalGetResponse {
 
     private final Long id;
     private final Long performanceId;
+    private final String programName;
     private final LocalDateTime startAt;
     private final LocalDateTime endAt;
     private final String venue;
@@ -22,9 +23,10 @@ public class TicketInternalGetReesponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public TicketInternalGetReesponse(Long id, Long performanceId, LocalDateTime startAt, LocalDateTime endAt, String venue, String section, String rowNumber, Integer seatNumber, BigDecimal price, TicketStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public TicketInternalGetResponse(Long id, Long performanceId, String programName, LocalDateTime startAt, LocalDateTime endAt, String venue, String section, String rowNumber, Integer seatNumber, BigDecimal price, TicketStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.performanceId = performanceId;
+        this.programName = programName;
         this.startAt = startAt;
         this.endAt = endAt;
         this.venue = venue;
