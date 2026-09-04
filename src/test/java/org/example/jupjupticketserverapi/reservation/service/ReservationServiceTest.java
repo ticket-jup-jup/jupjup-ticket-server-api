@@ -85,7 +85,7 @@ class ReservationServiceTest {
         when(request.getTicketId()).thenReturn(ticketId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.of(ticket));
         when(reservationRepository
                 .existsByTicketIdAndStatusAndExpiresAtAfter(
                         eq(ticketId),
@@ -124,7 +124,7 @@ class ReservationServiceTest {
 
         // then
         verify(userRepository).findById(userId);
-        verify(ticketRepository).findById(ticketId);
+        verify(ticketRepository).findByIdForUpdate(ticketId);
 
         verify(reservationRepository)
                 .existsByTicketIdAndStatusAndExpiresAtAfter(
@@ -179,7 +179,7 @@ class ReservationServiceTest {
         when(request.getTicketId()).thenReturn(ticketId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
+        when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() ->
@@ -189,7 +189,7 @@ class ReservationServiceTest {
                 .hasMessage("존재하지 않는 티켓입니다.");
 
         verify(userRepository).findById(userId);
-        verify(ticketRepository).findById(ticketId);
+        verify(ticketRepository).findByIdForUpdate(ticketId);
         verifyNoInteractions(reservationRepository);
     }
 
@@ -205,7 +205,7 @@ class ReservationServiceTest {
         when(request.getTicketId()).thenReturn(ticketId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.of(ticket));
 
         when(reservationRepository
                 .existsByTicketIdAndStatusAndExpiresAtAfter(
@@ -242,7 +242,7 @@ class ReservationServiceTest {
         when(request.getTicketId()).thenReturn(ticketId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.of(ticket));
 
         when(reservationRepository
                 .existsByTicketIdAndStatusAndExpiresAtAfter(

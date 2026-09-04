@@ -5,7 +5,6 @@ import org.example.jupjupticketserverapi.payment.dto.PaymentResponse;
 import org.example.jupjupticketserverapi.payment.entity.Payment;
 import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
 import org.example.jupjupticketserverapi.reservation.dto.*;
-import org.example.jupjupticketserverapi.reservation.dto.*;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
@@ -19,6 +18,7 @@ import org.example.jupjupticketserverapi.user.entity.User;
 import org.example.jupjupticketserverapi.user.exception.UserNotFoundException;
 import org.example.jupjupticketserverapi.user.respository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -33,7 +33,7 @@ public class ReservationService {
     private final TicketRepository ticketRepository;
     private final PaymentRepository paymentRepository;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ReservationCreateResponse> create(
             ReservationCreateRequest request
     ) {
@@ -45,7 +45,7 @@ public class ReservationService {
                 );
 
         // 티켓 정보 조회
-        Ticket ticket = ticketRepository.findById(request.getTicketId())
+        Ticket ticket = ticketRepository.findByIdForUpdate(request.getTicketId())
                 .orElseThrow(() ->
                         new TicketNotFoundException("존재하지 않는 티켓입니다.")
                 );
