@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.jupjupticketserverapi.performance.entity.Performance;
 import org.example.jupjupticketserverapi.performance.exception.PerformanceNotFoundException;
 import org.example.jupjupticketserverapi.performance.repository.PerformanceRepository;
+import org.example.jupjupticketserverapi.program.exception.ProgramNotFoundException;
+import org.example.jupjupticketserverapi.program.repository.ProgramRepository;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.seat.entity.Seat;
@@ -26,30 +28,30 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final PerformanceRepository performanceRepository;
+    private final ProgramRepository programRepository;
 
     @Transactional(readOnly = true)
+
     public List<TicketGetResponse> getTickets(
             Long programId,
             Long performanceId
     ) {
+        // programId 유효성 검사
+        if (programId != null
+                && !programRepository.existsById(programId)) {
+            throw new ProgramNotFoundException("존재하지 않는 프로그램입니다.");
+        }
+
+        // performanceId 유효성 검사
+        if (performanceId != null
+                && !performanceRepository.existsById(performanceId)) {
+            throw new PerformanceNotFoundException("존재하지 않는 회차입니다.");
+        }
+
         return ticketRepository.findTicketList(programId, performanceId)
                 .stream()
                 .map(row -> {
-
-                    ReservationStatus reservationStatus =
-                            (ReservationStatus) row[6];
-
-                    String status;
-
-                    if (reservationStatus == null) {
-                        status = "AVAILABLE";
-                    } else if (reservationStatus == ReservationStatus.PENDING) {
-                        status = "RESERVED";
-                    } else if (reservationStatus == ReservationStatus.CONFIRMED) {
-                        status = "SOLD";
-                    } else {
-                        status = "AVAILABLE";
-                    }
+                    Reservation reservation = (Reservation) row[6];
 
                     return new TicketGetResponse(
                             (Long) row[0],
@@ -58,7 +60,7 @@ public class TicketService {
                             (String) row[3],
                             (String) row[4],
                             (BigDecimal) row[5],
-                            status
+                            calculateTicketStatus(reservation)
                     );
                 })
                 .toList();
