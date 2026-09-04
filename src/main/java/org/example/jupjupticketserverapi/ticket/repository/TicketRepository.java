@@ -52,10 +52,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             SELECT
                 t,
                 p,
+                pr,
                 s,
                 r
             FROM Ticket t
             JOIN t.performance p
+            JOIN p.program pr
             JOIN t.seat s
             LEFT JOIN Reservation r
                 ON r.ticket = t

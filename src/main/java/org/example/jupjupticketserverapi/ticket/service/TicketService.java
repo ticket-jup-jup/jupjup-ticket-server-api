@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.example.jupjupticketserverapi.performance.entity.Performance;
 import org.example.jupjupticketserverapi.performance.exception.PerformanceNotFoundException;
 import org.example.jupjupticketserverapi.performance.repository.PerformanceRepository;
+import org.example.jupjupticketserverapi.program.entity.Program;
 import org.example.jupjupticketserverapi.program.exception.ProgramNotFoundException;
 import org.example.jupjupticketserverapi.program.repository.ProgramRepository;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.seat.entity.Seat;
 import org.example.jupjupticketserverapi.ticket.dto.TicketGetResponse;
-import org.example.jupjupticketserverapi.ticket.dto.TicketInternalGetReesponse;
+import org.example.jupjupticketserverapi.ticket.dto.TicketInternalGetResponse;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.ticket.entity.TicketStatus;
 import org.example.jupjupticketserverapi.ticket.exception.InvalidTicketStatusException;
@@ -67,7 +68,7 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<TicketInternalGetReesponse> getInternalTickets(
+    public List<TicketInternalGetResponse> getInternalTickets(
             Long performanceId,
             String status
     ) {
@@ -87,8 +88,9 @@ public class TicketService {
 
                     Ticket ticket = (Ticket) row[0];
                     Performance performance = (Performance) row[1];
-                    Seat seat = (Seat) row[2];
-                    Reservation reservation = (Reservation) row[3];
+                    Program program = (Program) row[2];
+                    Seat seat = (Seat) row[3];
+                    Reservation reservation = (Reservation) row[4];
 
                     TicketStatus calculatedStatus = calculateTicketStatus(reservation);
 
@@ -97,9 +99,10 @@ public class TicketService {
                         return null;
                     }
 
-                    return new TicketInternalGetReesponse(
+                    return new TicketInternalGetResponse(
                             ticket.getId(),
                             performance.getId(),
+                            program.getName(),
                             performance.getStartAt(),
                             performance.getEndAt(),
                             performance.getVenue(),

@@ -3,13 +3,14 @@ package org.example.jupjupticketserverapi.ticket.service;
 import org.example.jupjupticketserverapi.performance.entity.Performance;
 import org.example.jupjupticketserverapi.performance.exception.PerformanceNotFoundException;
 import org.example.jupjupticketserverapi.performance.repository.PerformanceRepository;
+import org.example.jupjupticketserverapi.program.entity.Program;
 import org.example.jupjupticketserverapi.program.exception.ProgramNotFoundException;
 import org.example.jupjupticketserverapi.program.repository.ProgramRepository;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.example.jupjupticketserverapi.seat.entity.Seat;
 import org.example.jupjupticketserverapi.ticket.dto.TicketGetResponse;
-import org.example.jupjupticketserverapi.ticket.dto.TicketInternalGetReesponse;
+import org.example.jupjupticketserverapi.ticket.dto.TicketInternalGetResponse;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.ticket.entity.TicketStatus;
 import org.example.jupjupticketserverapi.ticket.exception.InvalidTicketStatusException;
@@ -131,11 +132,14 @@ class TicketServiceTest {
         Performance performance = mock(Performance.class);
         Seat seat = mock(Seat.class);
         Ticket ticket = mock(Ticket.class);
+        Program program = mock(Program.class);
 
         when(performance.getId()).thenReturn(10L);
         when(performance.getStartAt()).thenReturn(LocalDateTime.of(2026, 9, 10, 19, 30));
         when(performance.getEndAt()).thenReturn(LocalDateTime.of(2026, 9, 10, 22, 0));
         when(performance.getVenue()).thenReturn("잠실실내체육관");
+
+        when(program.getName()).thenReturn("테스트 공연");
 
         when(seat.getSection()).thenReturn("A");
         when(seat.getSeatRow()).thenReturn("A");
@@ -147,6 +151,7 @@ class TicketServiceTest {
         Object[] row = {
                 ticket,
                 performance,
+                program,
                 seat,
                 null
         };
@@ -154,7 +159,7 @@ class TicketServiceTest {
         when(ticketRepository.findInternalTicketList(null)).thenReturn(List.<Object[]>of(row));
 
         // when
-        List<TicketInternalGetReesponse> result = ticketService.getInternalTickets(null, null);
+        List<TicketInternalGetResponse> result = ticketService.getInternalTickets(null, null);
 
         // then
         verify(ticketRepository).findInternalTicketList(null);
@@ -162,6 +167,7 @@ class TicketServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(101L);
         assertThat(result.get(0).getPerformanceId()).isEqualTo(10L);
+        assertThat(result.get(0).getProgramName()).isEqualTo("테스트 공연");
         assertThat(result.get(0).getVenue()).isEqualTo("잠실실내체육관");
         assertThat(result.get(0).getSection()).isEqualTo("A");
         assertThat(result.get(0).getRowNumber()).isEqualTo("A");
@@ -180,7 +186,7 @@ class TicketServiceTest {
         when(ticketRepository.findInternalTicketList(performanceId)).thenReturn(List.of());
 
         // when
-        List<TicketInternalGetReesponse> result = ticketService.getInternalTickets(performanceId, null);
+        List<TicketInternalGetResponse> result = ticketService.getInternalTickets(performanceId, null);
 
         // then
         verify(performanceRepository).existsById(performanceId);
@@ -212,13 +218,17 @@ class TicketServiceTest {
         Ticket soldTicket = mock(Ticket.class);
 
         Performance performance = mock(Performance.class);
+        Program program = mock(Program.class);
         Seat seat = mock(Seat.class);
 
         when(performance.getId()).thenReturn(10L);
 
+        when(program.getName()).thenReturn("테스트 공연");
+
         Object[] availableRow = {
                 availableTicket,
                 performance,
+                program,
                 seat,
                 null
         };
@@ -229,6 +239,7 @@ class TicketServiceTest {
         Object[] soldRow = {
                 soldTicket,
                 performance,
+                program,
                 seat,
                 confirmedReservation
         };
@@ -236,7 +247,7 @@ class TicketServiceTest {
         when(ticketRepository.findInternalTicketList(null)).thenReturn(List.of(availableRow, soldRow));
 
         // when
-        List<TicketInternalGetReesponse> result = ticketService.getInternalTickets(null, "AVAILABLE");
+        List<TicketInternalGetResponse> result = ticketService.getInternalTickets(null, "AVAILABLE");
 
         // then
         assertThat(result).hasSize(1);
