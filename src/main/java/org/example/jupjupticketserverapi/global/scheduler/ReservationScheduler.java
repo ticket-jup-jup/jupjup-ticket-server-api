@@ -13,7 +13,7 @@ public class ReservationScheduler {
 
     private final ReservationService reservationService;
 
-    @Scheduled(fixedDelay = 60_000) // 1분마다 실행
+    @Scheduled(cron = "0 * * * * *") // 1분마다 실행
     public void expireReservations() {
         log.info("예약 만료 처리 시작");
 
