@@ -1,6 +1,7 @@
 package org.example.jupjupticketserverapi.reservation.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.jupjupticketserverapi.payment.dto.PaymentResponse;
 import org.example.jupjupticketserverapi.payment.entity.Payment;
 import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
@@ -192,5 +194,18 @@ public class ReservationService {
                         reservation.getCreatedAt(),
                         reservation.getUpdatedAt()
                 )).toList();
+    }
+
+    @Transactional
+    public void expireReservations() {
+        List<Reservation> reservations =
+                reservationRepository.findAllByStatusAndExpiresAtLessThanEqual(
+                        ReservationStatus.PENDING,
+                        LocalDateTime.now()
+                );
+
+        reservations.forEach(Reservation::expire);
+
+        log.info("만료된 예약 {}건 처리", reservations.size());
     }
 }

@@ -5,6 +5,7 @@ import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -18,4 +19,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             ReservationStatus status,
             LocalDateTime now
     );
+
+    List<Reservation> findAllByStatusAndExpiresAtLessThanEqual(ReservationStatus reservationStatus, LocalDateTime now);
 }
