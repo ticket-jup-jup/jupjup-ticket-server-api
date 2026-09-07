@@ -464,4 +464,44 @@ class ReservationServiceTest {
         assertThat(result.get(1).getTicketId()).isEqualTo(10L);
         assertThat(result.get(1).getStatus()).isEqualTo(ReservationStatus.PENDING);
     }
+
+    @Test
+    void 만료된_예약을_EXPIRED로_변경() {
+        // given
+        Reservation reservation1 = new Reservation(
+                user,
+                ticket,
+                LocalDateTime.now().minusMinutes(1)
+        );
+
+        Reservation reservation2 = new Reservation(
+                user,
+                ticket,
+                LocalDateTime.now().minusMinutes(5)
+        );
+
+        Reservation reservation3 = new Reservation(
+                user,
+                ticket,
+                LocalDateTime.now().minusMinutes(10)
+        );
+
+        when(reservationRepository.findAllByStatusAndExpiresAtLessThanEqual(
+                eq(ReservationStatus.PENDING),
+                any(LocalDateTime.class)
+        )).thenReturn(List.of(reservation1, reservation2, reservation3));
+
+        // when
+        reservationService.expireReservations();
+
+        // then
+        assertThat(reservation1.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
+        assertThat(reservation2.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
+        assertThat(reservation3.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
+
+        verify(reservationRepository).findAllByStatusAndExpiresAtLessThanEqual(
+                eq(ReservationStatus.PENDING),
+                any(LocalDateTime.class)
+        );
+    }
 }

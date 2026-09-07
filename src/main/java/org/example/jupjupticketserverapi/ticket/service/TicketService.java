@@ -136,6 +136,14 @@ public class TicketService {
             return TicketStatus.RESERVED;
         }
 
+        if (reservation.getStatus() == ReservationStatus.EXPIRED) {
+            return TicketStatus.AVAILABLE;
+        }
+
+        if (reservation.getStatus() == ReservationStatus.REFUNDED) {
+            return TicketStatus.AVAILABLE;
+        }
+
         return TicketStatus.AVAILABLE;
     }
 
