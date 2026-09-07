@@ -20,6 +20,8 @@ import org.example.jupjupticketserverapi.user.respository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.example.jupjupticketserverapi.webhook.event.TicketAvailableEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +34,7 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final TicketRepository ticketRepository;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ReservationCreateResponse> create(
@@ -174,8 +177,26 @@ public class ReservationService {
             throw new ReservationNotCancellableException(
                     "취소할 수 없는 예약입니다. 현재 상태: " + reservation.getStatus());
         }
+        /*예약 취소->AVAILABLE 시 webhook 발생*/
+        Long externalTicketId =
+                reservation.getTicket().getId();
 
+        Long performanceId =
+                reservation.getTicket()
+                        .getPerformance()
+                        .getId();
+
+        // 취소 → 티켓 다시 AVAILABLE
         reservation.refund();
+
+        // Transaction commit 후 Webhook 전송
+        eventPublisher.publishEvent(
+                new TicketAvailableEvent(
+                        externalTicketId,
+                        performanceId
+                )
+        );
+
         return ReservationCancelResponse.from(reservation);
     }
 

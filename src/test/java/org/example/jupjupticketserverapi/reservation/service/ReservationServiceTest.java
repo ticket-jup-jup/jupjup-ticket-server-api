@@ -17,12 +17,15 @@ import org.example.jupjupticketserverapi.ticket.repository.TicketRepository;
 import org.example.jupjupticketserverapi.user.entity.User;
 import org.example.jupjupticketserverapi.user.exception.UserNotFoundException;
 import org.example.jupjupticketserverapi.user.respository.UserRepository;
+import org.example.jupjupticketserverapi.webhook.event.TicketAvailableEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.example.jupjupticketserverapi.performance.entity.Performance;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,10 +53,16 @@ class ReservationServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private User user;
 
     @Mock
     private Ticket ticket;
+
+    @Mock
+    private Performance performance;
 
     @Mock
     private Reservation reservation;
@@ -69,7 +78,8 @@ class ReservationServiceTest {
                 reservationRepository,
                 userRepository,
                 ticketRepository,
-                paymentRepository
+                paymentRepository,
+                eventPublisher
         );
     }
 
@@ -349,6 +359,9 @@ class ReservationServiceTest {
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(ticket.getId()).thenReturn(10L);
 
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(performance.getId()).thenReturn(1L);
+
         // when
         ReservationCancelResponse response = reservationService.cancel(1L);
 
@@ -365,11 +378,17 @@ class ReservationServiceTest {
         Reservation reservation = 취소가능한_예약(ReservationStatus.CONFIRMED);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
 
+        when(ticket.getId()).thenReturn(10L);
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(performance.getId()).thenReturn(1L);
+
         // when
         reservationService.cancel(1L);
 
         // then: 확정 예약이 환불되는 순간 이 티켓은 다시 예약 가능 = 취소표
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.REFUNDED);
+
+        verify(eventPublisher).publishEvent(new TicketAvailableEvent(10L, 1L));
     }
 
     @Test
