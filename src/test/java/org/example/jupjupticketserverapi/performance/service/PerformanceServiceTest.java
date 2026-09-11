@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,9 +22,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PerformanceServiceTest {
-
-    @Mock
-    private Program program;
 
     @Mock
     private PerformanceRepository performanceRepository;
@@ -38,6 +36,8 @@ class PerformanceServiceTest {
                 ProgramType.CONCERT,
                 "테스트 설명"
         );
+
+        ReflectionTestUtils.setField(program, "id", 1L);
 
         Performance performance = new Performance(
                 program,
@@ -55,20 +55,28 @@ class PerformanceServiceTest {
                 PerformanceStatus.UPCOMING
         );
 
-        when(performanceRepository.findPerformanceList(null)).thenReturn(List.of(performance, performance2));
+        when(performanceRepository.findPerformanceListByDeletedAtIsNull(null))
+                .thenReturn(List.of(performance, performance2));
 
         // when
         List<PerformanceGetResponse> performances = performanceService.getAll(null);
 
         // then
-        verify(performanceRepository).findPerformanceList(null);
+        verify(performanceRepository).findPerformanceListByDeletedAtIsNull(null);
 
         assertThat(performances).hasSize(2);
-        assertThat(performances.get(0).getProgramId()).isNull();
+
+        assertThat(performances.get(0).getProgramId()).isEqualTo(1L);
         assertThat(performances.get(0).getStartAt()).isEqualTo(LocalDateTime.of(2026, 9, 10, 19, 0));
         assertThat(performances.get(0).getEndAt()).isEqualTo(LocalDateTime.of(2026, 9, 10, 21, 0));
         assertThat(performances.get(0).getVenue()).isEqualTo("테스트 장소");
         assertThat(performances.get(0).getStatus()).isEqualTo(PerformanceStatus.UPCOMING);
+
+        assertThat(performances.get(1).getProgramId()).isEqualTo(1L);
+        assertThat(performances.get(1).getStartAt()).isEqualTo(LocalDateTime.of(2026, 9, 11, 19, 0));
+        assertThat(performances.get(1).getEndAt()).isEqualTo(LocalDateTime.of(2026, 9, 11, 21, 0));
+        assertThat(performances.get(1).getVenue()).isEqualTo("테스트 장소 2");
+        assertThat(performances.get(1).getStatus()).isEqualTo(PerformanceStatus.UPCOMING);
     }
 
     @Test
@@ -78,9 +86,11 @@ class PerformanceServiceTest {
 
         Program program = new Program(
                 "테스트 프로그램",
-                null,
+                ProgramType.CONCERT,
                 "테스트 설명"
         );
+
+        ReflectionTestUtils.setField(program, "id", programId);
 
         Performance performance = new Performance(
                 program,
@@ -90,17 +100,20 @@ class PerformanceServiceTest {
                 PerformanceStatus.UPCOMING
         );
 
-        when(performanceRepository.findPerformanceList(programId)).thenReturn(List.of(performance));
+        when(performanceRepository.findPerformanceListByDeletedAtIsNull(programId))
+                .thenReturn(List.of(performance));
 
         // when
         List<PerformanceGetResponse> performances = performanceService.getAll(programId);
 
         // then
-        verify(performanceRepository).findPerformanceList(programId);
+        verify(performanceRepository).findPerformanceListByDeletedAtIsNull(programId);
+
         assertThat(performances).hasSize(1);
+        assertThat(performances.get(0).getProgramId()).isEqualTo(programId);
         assertThat(performances.get(0).getStartAt()).isEqualTo(LocalDateTime.of(2026, 9, 10, 19, 0));
+        assertThat(performances.get(0).getEndAt()).isEqualTo(LocalDateTime.of(2026, 9, 10, 21, 0));
         assertThat(performances.get(0).getVenue()).isEqualTo("테스트 장소");
         assertThat(performances.get(0).getStatus()).isEqualTo(PerformanceStatus.UPCOMING);
     }
-
 }

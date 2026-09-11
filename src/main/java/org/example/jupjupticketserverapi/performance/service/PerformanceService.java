@@ -16,7 +16,7 @@ public class PerformanceService {
 
     @Transactional(readOnly = true)
     public List<PerformanceGetResponse> getAll(Long programId) {
-        return performanceRepository.findPerformanceList(programId).stream().map(
+        return performanceRepository.findPerformanceListByDeletedAtIsNull(programId).stream().map(
                 performance -> new PerformanceGetResponse(
                         performance.getId(),
                         performance.getProgram().getId(),
@@ -25,7 +25,8 @@ public class PerformanceService {
                         performance.getVenue(),
                         performance.getStatus(),
                         performance.getCreatedAt(),
-                        performance.getUpdatedAt()
+                        performance.getUpdatedAt(),
+                        performance.getDeletedAt()
                 )
         ).toList();
     }
