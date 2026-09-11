@@ -16,8 +16,9 @@ public class PerformanceGetResponse {
     private final PerformanceStatus status;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final LocalDateTime deletedAt;
 
-    public PerformanceGetResponse(Long id, Long programId, LocalDateTime startAt, LocalDateTime endAt, String venue, PerformanceStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public PerformanceGetResponse(Long id, Long programId, LocalDateTime startAt, LocalDateTime endAt, String venue, PerformanceStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
         this.id = id;
         this.programId = programId;
         this.startAt = startAt;
@@ -26,5 +27,6 @@ public class PerformanceGetResponse {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
     }
 }

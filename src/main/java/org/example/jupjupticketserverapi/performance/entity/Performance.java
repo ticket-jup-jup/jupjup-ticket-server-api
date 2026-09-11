@@ -36,11 +36,17 @@ public class Performance extends BaseEntity {
     @Column(nullable = false, length = 10)
     private PerformanceStatus status;
 
+    private LocalDateTime deletedAt;
+
     public Performance(Program program, LocalDateTime startAt, LocalDateTime endAt, String venue, PerformanceStatus status) {
         this.program = program;
         this.startAt = startAt;
         this.endAt = endAt;
         this.venue = venue;
         this.status = status;
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
     }
 }

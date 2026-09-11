@@ -9,10 +9,11 @@ import java.util.List;
 public interface PerformanceRepository extends JpaRepository<Performance, Long> {
 
     @Query("""
-                SELECT p
-                FROM Performance p
-                WHERE (:programId IS NULL OR p.program.id = :programId)
-                ORDER BY p.id ASC
+            SELECT p
+            FROM Performance p
+            WHERE (:programId IS NULL OR p.program.id = :programId)
+              AND p.deletedAt IS NULL
+            ORDER BY p.id ASC
             """)
-    List<Performance> findPerformanceList(Long programId);
+    List<Performance> findPerformanceListByDeletedAtIsNull(Long programId);
 }
