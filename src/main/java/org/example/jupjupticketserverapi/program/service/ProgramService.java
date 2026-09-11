@@ -16,7 +16,7 @@ public class ProgramService {
 
     @Transactional(readOnly = true)
     public List<ProgramGetResponse> getAll() {
-        return programRepository.findAll().stream().map(
+        return programRepository.findAllByDeletedAtIsNull().stream().map(
                 program -> new ProgramGetResponse(
                         program.getId(),
                         program.getName(),

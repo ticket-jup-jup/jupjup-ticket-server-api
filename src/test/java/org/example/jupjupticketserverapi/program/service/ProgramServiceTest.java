@@ -40,13 +40,13 @@ class ProgramServiceTest {
                 "테스트 설명 2"
         );
 
-        when(programRepository.findAll()).thenReturn(List.of(program, program2));
+        when(programRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(program, program2));
 
         // when
         List<ProgramGetResponse> programs = programService.getAll();
 
         // then
-        verify(programRepository).findAll();
+        verify(programRepository).findAllByDeletedAtIsNull();
 
         assertThat(programs).hasSize(2);
         assertThat(programs.get(0).getName()).isEqualTo("테스트 프로그램");
