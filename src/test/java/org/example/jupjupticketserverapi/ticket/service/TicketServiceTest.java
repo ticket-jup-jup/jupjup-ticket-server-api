@@ -141,9 +141,7 @@ class TicketServiceTest {
 
         when(program.getName()).thenReturn("테스트 공연");
 
-        when(seat.getSection()).thenReturn("A");
-        when(seat.getSeatRow()).thenReturn("A");
-        when(seat.getSeatNumber()).thenReturn(12);
+        when(seat.getId()).thenReturn(1L);
 
         when(ticket.getId()).thenReturn(101L);
         when(ticket.getPrice()).thenReturn(new BigDecimal("100000.00"));
@@ -168,10 +166,10 @@ class TicketServiceTest {
         assertThat(result.get(0).getId()).isEqualTo(101L);
         assertThat(result.get(0).getPerformanceId()).isEqualTo(10L);
         assertThat(result.get(0).getProgramName()).isEqualTo("테스트 공연");
+        assertThat(result.get(0).getStartAt()).isEqualTo(LocalDateTime.of(2026, 9, 10, 19, 30));
+        assertThat(result.get(0).getEndAt()).isEqualTo(LocalDateTime.of(2026, 9, 10, 22, 0));
         assertThat(result.get(0).getVenue()).isEqualTo("잠실실내체육관");
-        assertThat(result.get(0).getSection()).isEqualTo("A");
-        assertThat(result.get(0).getRowNumber()).isEqualTo("A");
-        assertThat(result.get(0).getSeatNumber()).isEqualTo(12);
+        assertThat(result.get(0).getSeatId()).isEqualTo(1L);
         assertThat(result.get(0).getPrice()).isEqualByComparingTo("100000.00");
         assertThat(result.get(0).getStatus()).isEqualTo(TicketStatus.AVAILABLE);
     }
