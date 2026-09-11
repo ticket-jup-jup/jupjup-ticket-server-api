@@ -120,6 +120,11 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (method.equals("GET")
+                && uri.equals("/api/seats")) {
+            return true;
+        }
+
+        if (method.equals("GET")
                 && uri.equals("/api/internal/tickets")) {
             return true;
         }
