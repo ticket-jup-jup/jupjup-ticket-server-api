@@ -4,13 +4,16 @@ import org.example.jupjupticketserverapi.payment.entity.Payment;
 import org.example.jupjupticketserverapi.payment.entity.PaymentMethod;
 import org.example.jupjupticketserverapi.payment.entity.PaymentStatus;
 import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
+import org.example.jupjupticketserverapi.performance.entity.Performance;
 import org.example.jupjupticketserverapi.reservation.dto.*;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
+import org.example.jupjupticketserverapi.reservation.event.TicketCanceledWebhookEvent;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotCancellableException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFoundException;
 import org.example.jupjupticketserverapi.reservation.repository.ReservationRepository;
+import org.example.jupjupticketserverapi.seat.entity.Seat;
 import org.example.jupjupticketserverapi.ticket.entity.Ticket;
 import org.example.jupjupticketserverapi.ticket.exception.TicketNotFoundException;
 import org.example.jupjupticketserverapi.ticket.repository.TicketRepository;
@@ -20,8 +23,10 @@ import org.example.jupjupticketserverapi.user.respository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -32,6 +37,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +56,9 @@ class ReservationServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private User user;
 
     @Mock
@@ -61,6 +70,12 @@ class ReservationServiceTest {
     @Mock
     private Reservation savedReservation;
 
+    @Mock
+    private Performance performance;
+
+    @Mock
+    private Seat seat;
+
     private ReservationService reservationService;
 
     @BeforeEach
@@ -69,7 +84,8 @@ class ReservationServiceTest {
                 reservationRepository,
                 userRepository,
                 ticketRepository,
-                paymentRepository
+                paymentRepository,
+                eventPublisher
         );
     }
 
@@ -264,6 +280,12 @@ class ReservationServiceTest {
                 .isInstanceOf(ReservationAlreadyExistsException.class)
                 .hasMessage("이미 예약된 티켓입니다.");
 
+        verify(reservationRepository)
+                .existsByTicketIdAndStatus(
+                        ticketId,
+                        ReservationStatus.CONFIRMED
+                );
+
         verify(reservationRepository, never()).save(any(Reservation.class));
     }
 
@@ -348,6 +370,12 @@ class ReservationServiceTest {
         Reservation reservation = 취소가능한_예약(ReservationStatus.PENDING);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(ticket.getId()).thenReturn(10L);
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(ticket.getSeat()).thenReturn(seat);
+        when(ticket.getPrice()).thenReturn(BigDecimal.valueOf(10000));
+
+        when(performance.getId()).thenReturn(20L);
+        when(seat.getId()).thenReturn(30L);
 
         // when
         ReservationCancelResponse response = reservationService.cancel(1L);
@@ -357,6 +385,8 @@ class ReservationServiceTest {
         assertThat(response.reservationId()).isEqualTo(1L);
         assertThat(response.status()).isEqualTo("REFUNDED");
         assertThat(response.ticketId()).isEqualTo(10L);
+
+        verify(eventPublisher).publishEvent(any(TicketCanceledWebhookEvent.class));
     }
 
     @Test
@@ -364,12 +394,55 @@ class ReservationServiceTest {
         // given
         Reservation reservation = 취소가능한_예약(ReservationStatus.CONFIRMED);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(ticket.getId()).thenReturn(10L);
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(ticket.getSeat()).thenReturn(seat);
+        when(ticket.getPrice()).thenReturn(BigDecimal.valueOf(10000));
+
+        when(performance.getId()).thenReturn(20L);
+        when(seat.getId()).thenReturn(30L);
 
         // when
         reservationService.cancel(1L);
 
-        // then: 확정 예약이 환불되는 순간 이 티켓은 다시 예약 가능 = 취소표
+        // then
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.REFUNDED);
+
+        verify(eventPublisher).publishEvent(any(TicketCanceledWebhookEvent.class));
+    }
+
+    @Test
+    void 예약_취소_시_취소표_Webhook_이벤트_발행() {
+        // given
+        Reservation reservation = 취소가능한_예약(ReservationStatus.CONFIRMED);
+
+        when(reservationRepository.findById(1L))
+                .thenReturn(Optional.of(reservation));
+
+        when(ticket.getId()).thenReturn(10L);
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(ticket.getSeat()).thenReturn(seat);
+        when(ticket.getPrice()).thenReturn(BigDecimal.valueOf(10000));
+
+        when(performance.getId()).thenReturn(20L);
+        when(seat.getId()).thenReturn(30L);
+
+        // when
+        reservationService.cancel(1L);
+
+        // then
+        ArgumentCaptor<TicketCanceledWebhookEvent> captor =
+                ArgumentCaptor.forClass(TicketCanceledWebhookEvent.class);
+
+        verify(eventPublisher).publishEvent(captor.capture());
+
+        TicketCanceledWebhookEvent event = captor.getValue();
+
+        assertThat(event.ticketId()).isEqualTo(10L);
+        assertThat(event.performanceId()).isEqualTo(20L);
+        assertThat(event.seatId()).isEqualTo(30L);
+        assertThat(event.price()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+        assertThat(event.canceledAt()).isNotNull();
     }
 
     @Test
@@ -383,6 +456,8 @@ class ReservationServiceTest {
                 .isInstanceOf(ReservationNotCancellableException.class);
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.REFUNDED);
+
+        verify(eventPublisher, never()).publishEvent(any(TicketCanceledWebhookEvent.class));
     }
 
     @Test
@@ -396,6 +471,8 @@ class ReservationServiceTest {
                 .isInstanceOf(ReservationNotCancellableException.class);
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
+
+        verify(eventPublisher, never()).publishEvent(any(TicketCanceledWebhookEvent.class));
     }
 
     @Test
@@ -406,6 +483,9 @@ class ReservationServiceTest {
         // when & then
         assertThatThrownBy(() -> reservationService.cancel(99L))
                 .isInstanceOf(ReservationNotFoundException.class);
+
+        verify(eventPublisher, never())
+                .publishEvent(any(TicketCanceledWebhookEvent.class));
     }
 
     /**
@@ -491,6 +571,14 @@ class ReservationServiceTest {
                 any(LocalDateTime.class)
         )).thenReturn(List.of(reservation1, reservation2, reservation3));
 
+        when(ticket.getId()).thenReturn(10L);
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(ticket.getSeat()).thenReturn(seat);
+        when(ticket.getPrice()).thenReturn(BigDecimal.valueOf(10000));
+
+        when(performance.getId()).thenReturn(20L);
+        when(seat.getId()).thenReturn(30L);
+
         // when
         reservationService.expireReservations();
 
@@ -499,9 +587,46 @@ class ReservationServiceTest {
         assertThat(reservation2.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
         assertThat(reservation3.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
 
-        verify(reservationRepository).findAllByStatusAndExpiresAtLessThanEqual(
+        verify(eventPublisher, times(3)).publishEvent(any(TicketCanceledWebhookEvent.class));
+    }
+
+    @Test
+    void 예약_만료_시_취소표_Webhook_이벤트_발행() {
+        // given
+        Reservation reservation = new Reservation(
+                user,
+                ticket,
+                LocalDateTime.now().minusMinutes(1)
+        );
+
+        when(reservationRepository.findAllByStatusAndExpiresAtLessThanEqual(
                 eq(ReservationStatus.PENDING),
                 any(LocalDateTime.class)
-        );
+        )).thenReturn(List.of(reservation));
+
+        when(ticket.getId()).thenReturn(10L);
+        when(ticket.getPerformance()).thenReturn(performance);
+        when(ticket.getSeat()).thenReturn(seat);
+        when(ticket.getPrice()).thenReturn(BigDecimal.valueOf(10000));
+
+        when(performance.getId()).thenReturn(20L);
+        when(seat.getId()).thenReturn(30L);
+
+        // when
+        reservationService.expireReservations();
+
+        // then
+        ArgumentCaptor<TicketCanceledWebhookEvent> captor = ArgumentCaptor.forClass(TicketCanceledWebhookEvent.class);
+
+        verify(eventPublisher).publishEvent(captor.capture());
+
+        TicketCanceledWebhookEvent event = captor.getValue();
+
+        assertThat(event.ticketId()).isEqualTo(10L);
+        assertThat(event.performanceId()).isEqualTo(20L);
+        assertThat(event.seatId()).isEqualTo(30L);
+        assertThat(event.price()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+        assertThat(event.canceledAt()).isNotNull();
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.EXPIRED);
     }
 }
