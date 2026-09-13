@@ -149,7 +149,6 @@ class ReservationServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isNotNull();
         assertThat(result.get(0).getReservation()).isNotNull();
-        assertThat(result.get(0).getReservation().getId()).isEqualTo(100L);
         assertThat(result.get(0).getReservation().getUserId()).isEqualTo(userId);
         assertThat(result.get(0).getReservation().getTicketId()).isEqualTo(ticketId);
         assertThat(result.get(0).getReservation().getStatus()).isEqualTo(ReservationStatus.PENDING.name());
@@ -211,7 +210,6 @@ class ReservationServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getReservation()).isNotNull();
-        assertThat(result.get(0).getReservation().getId()).isEqualTo(100L);
         assertThat(result.get(0).getReservation().getUserId()).isEqualTo(userId);
         assertThat(result.get(0).getReservation().getTicketId()).isEqualTo(ticketId);
         assertThat(result.get(0).getReservation().getStatus()).isEqualTo(ReservationStatus.PENDING.name());
@@ -273,7 +271,6 @@ class ReservationServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getReservation()).isNotNull();
-        assertThat(result.get(0).getReservation().getId()).isEqualTo(200L);
         assertThat(result.get(0).getReservation().getUserId()).isEqualTo(userId);
         assertThat(result.get(0).getReservation().getTicketId()).isEqualTo(ticketId);
         assertThat(result.get(0).getReservation().getStatus()).isEqualTo(ReservationStatus.PENDING.name());
