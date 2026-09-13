@@ -15,24 +15,20 @@ public class TicketInternalGetResponse {
     private final LocalDateTime startAt;
     private final LocalDateTime endAt;
     private final String venue;
-    private final String section;
-    private final String rowNumber;
-    private final Integer seatNumber;
+    private final Long seatId;
     private final BigDecimal price;
     private final TicketStatus status;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public TicketInternalGetResponse(Long id, Long performanceId, String programName, LocalDateTime startAt, LocalDateTime endAt, String venue, String section, String rowNumber, Integer seatNumber, BigDecimal price, TicketStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public TicketInternalGetResponse(Long id, Long performanceId, String programName, LocalDateTime startAt, LocalDateTime endAt, String venue, Long seatId, BigDecimal price, TicketStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.performanceId = performanceId;
         this.programName = programName;
         this.startAt = startAt;
         this.endAt = endAt;
         this.venue = venue;
-        this.section = section;
-        this.rowNumber = rowNumber;
-        this.seatNumber = seatNumber;
+        this.seatId = seatId;
         this.price = price;
         this.status = status;
         this.createdAt = createdAt;
