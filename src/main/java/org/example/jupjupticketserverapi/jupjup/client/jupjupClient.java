@@ -13,7 +13,7 @@ public class jupjupClient {
 
     private final RestClient restClient;
 
-    public jupjupClient(@Value("${jupjup.url}") String url) {
+    public jupjupClient(@Value("${jupjup-server.url}") String url) {
         this.restClient = RestClient.builder()
                 .baseUrl(url)
                 .build();
