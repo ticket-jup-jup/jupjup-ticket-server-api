@@ -8,6 +8,7 @@ import org.example.jupjupticketserverapi.payment.repository.PaymentRepository;
 import org.example.jupjupticketserverapi.reservation.dto.*;
 import org.example.jupjupticketserverapi.reservation.entity.Reservation;
 import org.example.jupjupticketserverapi.reservation.entity.ReservationStatus;
+import org.example.jupjupticketserverapi.reservation.event.TicketCanceledWebhookEvent;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationAlreadyExistsException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotCancellableException;
 import org.example.jupjupticketserverapi.reservation.exception.ReservationNotFoundException;
@@ -18,6 +19,7 @@ import org.example.jupjupticketserverapi.ticket.repository.TicketRepository;
 import org.example.jupjupticketserverapi.user.entity.User;
 import org.example.jupjupticketserverapi.user.exception.UserNotFoundException;
 import org.example.jupjupticketserverapi.user.respository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final TicketRepository ticketRepository;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ReservationCreateResponse> create(
@@ -191,6 +194,10 @@ public class ReservationService {
         }
 
         reservation.refund();
+
+        // 줍줍서버로 취소표 알림 Webhook 전송
+        publishTicketCanceledWebhookEvent(reservation);
+
         return ReservationCancelResponse.from(reservation);
     }
 
@@ -217,8 +224,28 @@ public class ReservationService {
                         LocalDateTime.now()
                 );
 
-        reservations.forEach(Reservation::expire);
+        for (Reservation reservation : reservations) {
+            reservation.expire();
+
+            // 줍줍서버로 취소표 알림 Webhook 전송
+            publishTicketCanceledWebhookEvent(reservation);
+        }
 
         log.info("만료된 예약 {}건 처리", reservations.size());
+    }
+
+    private void publishTicketCanceledWebhookEvent(Reservation reservation) {
+
+        Ticket ticket = reservation.getTicket();
+
+        eventPublisher.publishEvent(
+                new TicketCanceledWebhookEvent(
+                        ticket.getId(),
+                        ticket.getPerformance().getId(),
+                        ticket.getSeat().getId(),
+                        ticket.getPrice(),
+                        LocalDateTime.now()
+                )
+        );
     }
 }

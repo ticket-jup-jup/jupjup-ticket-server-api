@@ -8,3 +8,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+jupjup-server:
+  url: ${JUPJUP_SERVER_URL}
