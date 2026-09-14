@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -81,25 +82,37 @@ public class ReservationService {
         // 만료시간 계산
         LocalDateTime expiresAt = now.plusMinutes(10);
 
-        // 예약 생성
-        Reservation reservation = new Reservation(
-                user,
-                ticket,
-                expiresAt
-        );
+        // 기존에 만료/환불 상태인 예약 데이터가 있으면 UPDATE
+        Optional<Reservation> existingReservation =
+                reservationRepository.findByTicketIdAndStatusIn(
+                        request.getTicketId(),
+                        List.of(ReservationStatus.EXPIRED, ReservationStatus.REFUNDED)
+                );
 
-        Reservation savedReservation =
-                reservationRepository.save(reservation);
+        Reservation reservation;
+        if (existingReservation.isPresent()) {
+            reservation = existingReservation.get();
+            reservation.renew(user, expiresAt);
+        } else {
+            // 기존 예약이 없으면 새 예약 생성
+            reservation = new Reservation(
+                    user,
+                    ticket,
+                    expiresAt
+            );
+
+            reservation = reservationRepository.save(reservation);
+        }
 
         ReservationResponse reservationResponse =
                 new ReservationResponse(
-                        savedReservation.getId(),
-                        savedReservation.getUser().getId(),
-                        savedReservation.getTicket().getId(),
-                        savedReservation.getStatus().name(),
-                        savedReservation.getExpiresAt(),
-                        savedReservation.getCreatedAt(),
-                        savedReservation.getUpdatedAt()
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getTicket().getId(),
+                        reservation.getStatus().name(),
+                        reservation.getExpiresAt(),
+                        reservation.getCreatedAt(),
+                        reservation.getUpdatedAt()
                 );
 
         return List.of(

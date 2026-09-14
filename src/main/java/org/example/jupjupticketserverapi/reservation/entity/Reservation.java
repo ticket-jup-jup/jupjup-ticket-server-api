@@ -70,4 +70,10 @@ public class Reservation extends BaseEntity {
 
         this.status = ReservationStatus.EXPIRED;
     }
+
+    public void renew(User user, LocalDateTime expiresAt) {
+        this.user = user;
+        this.status = ReservationStatus.PENDING;
+        this.expiresAt = expiresAt;
+    }
 }

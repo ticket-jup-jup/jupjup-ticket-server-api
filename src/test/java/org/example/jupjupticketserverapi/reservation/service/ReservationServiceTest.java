@@ -86,20 +86,22 @@ class ReservationServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.of(ticket));
-        when(reservationRepository
-                .existsByTicketIdAndStatusAndExpiresAtAfter(
-                        eq(ticketId),
-                        eq(ReservationStatus.PENDING),
-                        any(LocalDateTime.class)
-                ))
-                .thenReturn(false);
 
-        when(reservationRepository
-                .existsByTicketIdAndStatus(
-                        ticketId,
-                        ReservationStatus.CONFIRMED
-                ))
-                .thenReturn(false);
+        when(reservationRepository.existsByTicketIdAndStatusAndExpiresAtAfter(
+                eq(ticketId),
+                eq(ReservationStatus.PENDING),
+                any(LocalDateTime.class)
+        )).thenReturn(false);
+
+        when(reservationRepository.existsByTicketIdAndStatus(
+                ticketId,
+                ReservationStatus.CONFIRMED
+        )).thenReturn(false);
+
+        when(reservationRepository.findByTicketIdAndStatusIn(
+                ticketId,
+                List.of(ReservationStatus.EXPIRED, ReservationStatus.REFUNDED)
+        )).thenReturn(Optional.empty());
 
         when(savedReservation.getId()).thenReturn(100L);
         when(savedReservation.getUser()).thenReturn(user);
@@ -126,23 +128,152 @@ class ReservationServiceTest {
         verify(userRepository).findById(userId);
         verify(ticketRepository).findByIdForUpdate(ticketId);
 
-        verify(reservationRepository)
-                .existsByTicketIdAndStatusAndExpiresAtAfter(
-                        eq(ticketId),
-                        eq(ReservationStatus.PENDING),
-                        any(LocalDateTime.class)
-                );
+        verify(reservationRepository).existsByTicketIdAndStatusAndExpiresAtAfter(
+                eq(ticketId),
+                eq(ReservationStatus.PENDING),
+                any(LocalDateTime.class)
+        );
 
-        verify(reservationRepository)
-                .existsByTicketIdAndStatus(
-                        ticketId,
-                        ReservationStatus.CONFIRMED
-                );
+        verify(reservationRepository).existsByTicketIdAndStatus(
+                ticketId,
+                ReservationStatus.CONFIRMED
+        );
+
+        verify(reservationRepository).findByTicketIdAndStatusIn(
+                ticketId,
+                List.of(ReservationStatus.EXPIRED, ReservationStatus.REFUNDED)
+        );
 
         verify(reservationRepository).save(any(Reservation.class));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isNotNull();
+        assertThat(result.get(0).getReservation()).isNotNull();
+        assertThat(result.get(0).getReservation().getUserId()).isEqualTo(userId);
+        assertThat(result.get(0).getReservation().getTicketId()).isEqualTo(ticketId);
+        assertThat(result.get(0).getReservation().getStatus()).isEqualTo(ReservationStatus.PENDING.name());
+    }
+
+    @Test
+    void EXPIRED_예약이_있으면_기존_예약을_재사용한다() {
+        // given
+        ReservationCreateRequest request = mock(ReservationCreateRequest.class);
+
+        Long userId = 1L;
+        Long ticketId = 10L;
+
+        when(request.getUserId()).thenReturn(userId);
+        when(request.getTicketId()).thenReturn(ticketId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.of(ticket));
+
+        when(reservationRepository.existsByTicketIdAndStatusAndExpiresAtAfter(
+                eq(ticketId),
+                eq(ReservationStatus.PENDING),
+                any(LocalDateTime.class)
+        )).thenReturn(false);
+
+        when(reservationRepository.existsByTicketIdAndStatus(
+                ticketId,
+                ReservationStatus.CONFIRMED
+        )).thenReturn(false);
+
+        Reservation expiredReservation = mock(Reservation.class);
+
+        when(reservationRepository.findByTicketIdAndStatusIn(
+                ticketId,
+                List.of(ReservationStatus.EXPIRED, ReservationStatus.REFUNDED)
+        )).thenReturn(Optional.of(expiredReservation));
+
+        when(expiredReservation.getId()).thenReturn(100L);
+        when(expiredReservation.getUser()).thenReturn(user);
+        when(expiredReservation.getTicket()).thenReturn(ticket);
+        when(expiredReservation.getStatus()).thenReturn(ReservationStatus.PENDING);
+        when(expiredReservation.getExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(expiredReservation.getCreatedAt()).thenReturn(LocalDateTime.now());
+        when(expiredReservation.getUpdatedAt()).thenReturn(LocalDateTime.now());
+
+        when(user.getId()).thenReturn(userId);
+        when(ticket.getId()).thenReturn(ticketId);
+
+        // when
+        List<ReservationCreateResponse> result = reservationService.create(request);
+
+        // then
+        verify(expiredReservation).renew(
+                eq(user),
+                any(LocalDateTime.class)
+        );
+
+        verify(reservationRepository, never()).save(any(Reservation.class));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getReservation()).isNotNull();
+        assertThat(result.get(0).getReservation().getUserId()).isEqualTo(userId);
+        assertThat(result.get(0).getReservation().getTicketId()).isEqualTo(ticketId);
+        assertThat(result.get(0).getReservation().getStatus()).isEqualTo(ReservationStatus.PENDING.name());
+    }
+
+    @Test
+    void REFUNDED_예약이_있으면_기존_예약을_재사용한다() {
+        // given
+        ReservationCreateRequest request = mock(ReservationCreateRequest.class);
+
+        Long userId = 1L;
+        Long ticketId = 10L;
+
+        when(request.getUserId()).thenReturn(userId);
+        when(request.getTicketId()).thenReturn(ticketId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(ticketRepository.findByIdForUpdate(ticketId)).thenReturn(Optional.of(ticket));
+
+        when(reservationRepository.existsByTicketIdAndStatusAndExpiresAtAfter(
+                eq(ticketId),
+                eq(ReservationStatus.PENDING),
+                any(LocalDateTime.class)
+        )).thenReturn(false);
+
+        when(reservationRepository.existsByTicketIdAndStatus(
+                ticketId,
+                ReservationStatus.CONFIRMED
+        )).thenReturn(false);
+
+        Reservation refundedReservation = mock(Reservation.class);
+
+        when(reservationRepository.findByTicketIdAndStatusIn(
+                ticketId,
+                List.of(ReservationStatus.EXPIRED, ReservationStatus.REFUNDED)
+        )).thenReturn(Optional.of(refundedReservation));
+
+        when(refundedReservation.getId()).thenReturn(200L);
+        when(refundedReservation.getUser()).thenReturn(user);
+        when(refundedReservation.getTicket()).thenReturn(ticket);
+        when(refundedReservation.getStatus()).thenReturn(ReservationStatus.PENDING);
+        when(refundedReservation.getExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(refundedReservation.getCreatedAt()).thenReturn(LocalDateTime.now());
+        when(refundedReservation.getUpdatedAt()).thenReturn(LocalDateTime.now());
+
+        when(user.getId()).thenReturn(userId);
+        when(ticket.getId()).thenReturn(ticketId);
+
+        // when
+        List<ReservationCreateResponse> result = reservationService.create(request);
+
+        // then
+        verify(refundedReservation).renew(
+                eq(user),
+                any(LocalDateTime.class)
+        );
+
+        verify(reservationRepository, never()).save(any(Reservation.class));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getReservation()).isNotNull();
+        assertThat(result.get(0).getReservation().getUserId()).isEqualTo(userId);
+        assertThat(result.get(0).getReservation().getTicketId()).isEqualTo(ticketId);
+        assertThat(result.get(0).getReservation().getStatus()).isEqualTo(ReservationStatus.PENDING.name());
     }
 
     @Test
@@ -269,7 +400,6 @@ class ReservationServiceTest {
 
     @Test
     void 예약_확정_및_결제_생성() {
-
         // given
         Long reservationId = 1L;
         Long ticketId = 10L;
@@ -319,7 +449,6 @@ class ReservationServiceTest {
 
     @Test
     void 존재하지_않는_예약_예외() {
-
         // given
         Long reservationId = 999L;
 
