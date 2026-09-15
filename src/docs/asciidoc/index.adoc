@@ -1,0 +1,128 @@
+= 줍줍 티켓 서버 API 문서
+:doctype: book
+:toc: left
+:toclevels: 2
+:sectnums:
+:source-highlighter: highlightjs
+
+외부 티켓 판매처를 시뮬레이션하는 서버다. 줍줍 서버는 `X-API-KEY` 헤더로 인증하여 **서버 간** API 를 호출하고, 헤더가 없는 요청은 **일반** 요청으로 처리된다.
+
+== 공통 응답 형식
+
+모든 API 는 아래 구조로 응답한다. `data` 는 항상 배열이다.
+
+=== 성공
+operation::program-list[snippets='http-response,response-fields']
+
+=== 실패
+`success` 가 `false` 이고 `error.code` 로 원인을 구분한다.
+
+operation::common-error[snippets='http-response,response-fields']
+
+.API Key 검증 에러 (모든 서버 간 API 공통)
+|===
+| 상태 | 코드 | 언제
+
+| 401 | INVALID_API_KEY | 유효하지 않은 API Key
+| 403 | FORBIDDEN_API | 서버 간 호출이 허용되지 않은 API
+|===
+
+== 서버 인증
+
+=== API Key 발급
+operation::server-credential-create[snippets='http-request,request-fields,http-response,response-fields']
+
+== 인증
+
+=== 사용자 인증 (서버 간)
+줍줍 서버가 사용자의 티켓 서버 계정을 검증할 때 호출한다.
+
+operation::auth-verify[snippets='http-request,request-headers,request-fields,http-response,response-fields']
+
+.발생 가능한 에러
+|===
+| 상태 | 코드 | 언제
+
+| 404 | USER_NOT_FOUND | 존재하지 않는 이메일
+| 401 | INVALID_PASSWORD | 비밀번호 불일치
+|===
+
+== 프로그램
+
+=== 프로그램 목록 조회 (서버 간)
+operation::program-list[snippets='http-request,request-headers,http-response,response-fields']
+
+== 공연
+
+=== 공연 목록 조회 (서버 간)
+operation::performance-list[snippets='http-request,request-headers,query-parameters,http-response,response-fields']
+
+== 좌석
+
+=== 좌석 목록 조회 (서버 간)
+operation::seat-list[snippets='http-request,request-headers,query-parameters,http-response,response-fields']
+
+== 티켓
+
+=== 티켓 목록 조회 (일반)
+operation::ticket-list[snippets='http-request,query-parameters,http-response,response-fields']
+
+.발생 가능한 에러
+|===
+| 상태 | 코드 | 언제
+
+| 404 | PROGRAM_NOT_FOUND | 존재하지 않는 프로그램 ID
+| 404 | PERFORMANCE_NOT_FOUND | 존재하지 않는 공연 ID
+|===
+
+=== 티켓 목록 조회 (서버 간)
+operation::ticket-internal-list[snippets='http-request,request-headers,query-parameters,http-response,response-fields']
+
+.발생 가능한 에러
+|===
+| 상태 | 코드 | 언제
+
+| 404 | PERFORMANCE_NOT_FOUND | 존재하지 않는 공연 ID
+| 404 | INVALID_TICKET_STATUS | status 가 AVAILABLE, RESERVED, SOLD 이외의 값
+|===
+
+== 예약
+
+=== 예약 목록 조회 (일반)
+operation::reservation-list[snippets='http-request,http-response,response-fields']
+
+=== 임시 예약 생성 (서버 간)
+생성 시점부터 10분간 임시 예약(PENDING) 상태가 유지되며, 그 안에 확정하지 않으면 만료된다.
+
+operation::reservation-create[snippets='http-request,request-headers,request-fields,http-response,response-fields']
+
+.발생 가능한 에러
+|===
+| 상태 | 코드 | 언제
+
+| 404 | USER_NOT_FOUND | 존재하지 않는 사용자 ID
+| 404 | TICKET_NOT_FOUND | 존재하지 않는 티켓 ID
+| 409 | RESERVATION_ALREADY_EXIST | 이미 임시 예약 또는 확정된 티켓
+|===
+
+=== 예약 확정 (서버 간)
+operation::reservation-confirm[snippets='http-request,request-headers,path-parameters,request-fields,http-response,response-fields']
+
+.발생 가능한 에러
+|===
+| 상태 | 코드 | 언제
+
+| 404 | RESERVATION_NOT_FOUND | 존재하지 않는 예약 ID, 또는 확정 불가능한 상태
+| 404 | TICKET_NOT_FOUND | 예약에 연결된 티켓 없음
+|===
+
+=== 예약 취소 (서버 간)
+operation::reservation-cancel[snippets='http-request,request-headers,path-parameters,http-response,response-fields']
+
+.발생 가능한 에러
+|===
+| 상태 | 코드 | 언제
+
+| 404 | RESERVATION_NOT_FOUND | 존재하지 않는 예약 ID
+| 409 | RESERVATION_NOT_CANCELLABLE | 취소할 수 없는 상태
+|===
