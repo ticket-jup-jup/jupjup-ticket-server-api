@@ -498,6 +498,7 @@ class ReservationServiceTest {
         // given
         Reservation reservation = 취소가능한_예약(ReservationStatus.PENDING);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(paymentRepository.findByReservationId(1L)).thenReturn(Optional.empty());
         when(ticket.getId()).thenReturn(10L);
         when(ticket.getPerformance()).thenReturn(performance);
         when(ticket.getSeat()).thenReturn(seat);
@@ -515,6 +516,8 @@ class ReservationServiceTest {
         assertThat(response.status()).isEqualTo("REFUNDED");
         assertThat(response.ticketId()).isEqualTo(10L);
 
+        verify(paymentRepository).findByReservationId(1L);
+        verify(paymentRepository, never()).delete(any(Payment.class));
         verify(eventPublisher).publishEvent(any(TicketCanceledWebhookEvent.class));
     }
 
@@ -523,6 +526,7 @@ class ReservationServiceTest {
         // given
         Reservation reservation = 취소가능한_예약(ReservationStatus.CONFIRMED);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(paymentRepository.findByReservationId(1L)).thenReturn(Optional.empty());
         when(ticket.getId()).thenReturn(10L);
         when(ticket.getPerformance()).thenReturn(performance);
         when(ticket.getSeat()).thenReturn(seat);
@@ -537,6 +541,8 @@ class ReservationServiceTest {
         // then
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.REFUNDED);
 
+        verify(paymentRepository).findByReservationId(1L);
+        verify(paymentRepository, never()).delete(any(Payment.class));
         verify(eventPublisher).publishEvent(any(TicketCanceledWebhookEvent.class));
     }
 

@@ -193,6 +193,10 @@ public class ReservationService {
                     "취소할 수 없는 예약입니다. 현재 상태: " + reservation.getStatus());
         }
 
+        // 결제 데이터가 있으면 삭제
+        paymentRepository.findByReservationId(reservationId)
+                .ifPresent(paymentRepository::delete);
+
         reservation.refund();
 
         // 줍줍서버로 취소표 알림 Webhook 전송
